@@ -24,7 +24,7 @@ for row in wp:
 def main():
     global client
     try:
-        rospy.init_node("test_move", anonymous=True, disable_signals=True) # Initialize ROS node
+        rospy.init_node("ur5pickandplace", disable_signals=True) # Initialize ROS node
         client = actionlib.SimpleActionClient('follow_joint_trajectory', FollowJointTrajectoryAction)
         rospy.loginfo("Waiting for server...")
         client.wait_for_server()

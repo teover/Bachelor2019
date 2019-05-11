@@ -4,7 +4,7 @@
 ###################
 
 # Default time between waypoints
-time_between_wp = 4
+time_between_wp = 5
 
 
 # IO Ports for vacuum control
