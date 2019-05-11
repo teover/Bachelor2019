@@ -1,0 +1,9 @@
+<launch>
+
+  <node pkg="template_match_camera" name="templatematch" type="templatematch.py" output="screen" args="$(find template_match_camera)/template.png">
+  </node>
+
+  <include file="$(find usb_cam)/launch/usb_cam-test.launch" />
+
+
+</launch>

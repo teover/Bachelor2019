@@ -1,4 +1,3 @@
-import time
 import roslib; roslib.load_manifest('ur_driver')
 import rospy
 import actionlib
@@ -6,7 +5,8 @@ from control_msgs.msg import *
 from trajectory_msgs.msg import *
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Bool
-from math import pi
+import config as c # Config file used for parameters
+
 
 # Imports SetIO.srv from /ur_msgs/srv/
 from ur_msgs.srv import SetIO
@@ -19,8 +19,8 @@ JOINT_NAMES = ['shoulder_pan_joint', 'shoulder_lift_joint', 'elbow_joint',
 
 # arm.move(waypoint, duration)          - move to waypoint in duration seconds
 # arm.readpos()                         - returns postion of arm in radians per joint
-# arm.vacOn(port_Succ, port_noSucc)     - activates port_Succ, deactivates port_noSucc
-# arm.vacOff(port_Succ, port_noSucc)
+# arm.vacCtrl(state, portOn, portOff):  - If state is True, turns portOn high and portOff low,
+#                                         if state is False, turns portOn low and portOff high
 # arm.readCamdetectStatus()             - reads file object_status in working directory
 
 
@@ -39,8 +39,8 @@ def move(waypoint, duration):
             JointTrajectoryPoint(positions=joints_pos, velocities=[0]*6, time_from_start=rospy.Duration(0.0)),
             JointTrajectoryPoint(positions=waypoint, velocities=[0]*6, time_from_start=rospy.Duration(duration)),]
         client.send_goal(g) # execute trajectory goal command
+        # debug print "waiting for result"
         client.wait_for_result() # wait for result
-
 
     except KeyboardInterrupt:
         client.cancel_goal()
@@ -48,27 +48,28 @@ def move(waypoint, duration):
     except:
         raise
 
-# Writes joint postions to command line and log file
+# Prints joint states to command line and log file
 def readpos(pos, dura):
-    log = open("joint_pos_log.txt","a+")
+    #log = open("joint_pos_log.txt","a+")
     joint_states = rospy.wait_for_message("joint_states", JointState)
-    print joint_states.position
-    log.write(pos + ": " + str(joint_states.position) + "\n")
-    log.close()
+    c.pos = joint_states.position
+    rospy.loginfo(joint_states.position)
+    #log.write(pos + " = " + str(joint_states.position) + "\n")
+    #log.close()
 
 
 SetIO = rospy.ServiceProxy('/ur_driver/set_io', SetIO)
 
-def vacOn(port_Succ, port_noSucc):
-	SetIO(1, port_noSucc, 0)
-	SetIO(1, port_Succ, 1)
-	print "succ"
-
-def vacOff(port_Succ, port_noSucc):
-    SetIO(1, port_noSucc, 1)
-    SetIO(1, port_Succ, 0)
-    print "nosucc"
+def vacCtrl(state, portOn, portOff):
+    if state == True:
+        SetIO(1, portOff, 0)
+        SetIO(1, portOn, 1)
+        rospy.loginfo("Vacuum turned on")
+    else:
+        SetIO(1, portOff, 1)
+        SetIO(1, portOn, 0)
+        rospy.loginfo("Vacuum turned off")
 
 def readCamdetectStatus():
     status = rospy.wait_for_message('object_status', Bool)
-    return True
+    return status.data

@@ -1,0 +1,6 @@
+<launch>
+
+  <node pkg="ur5_pickandplace" name="ur5_pickandplace" type="read_positions.py" output="screen">
+  </node>
+
+</launch>

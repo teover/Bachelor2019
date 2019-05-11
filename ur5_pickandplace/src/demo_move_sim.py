@@ -21,6 +21,7 @@ for row in wp:
     if(column > 2*np.pi or column < -2*np.pi):
         rospy.logfatal('Waypoints contains values larger 2pi or smaller than -2pi: ' + str(column)))
         sys.exit()
+
 def main():
     global client
     try:
@@ -30,24 +31,14 @@ def main():
         client.wait_for_server()
         rospy.loginfo("Connected to server")
 
-        #Check MiR200 battery
-        battery = mir.checkMiRBattery()
-        rospy.loginfo("MiR200 Battery percentage: " + str(battery))
-
         # Pickup counter
         counter = 1
         counter_tot = 0
 
         while not rospy.is_shutdown():
 
-            if mir.checkIfAtPosition(c.festo_coords) == False:
-                mir.addMissionToQueue(c.go_to_festo)
-            # Check MiR200 position
-            while mir.checkIfAtPosition(c.festo_coords) == False:
-                rospy.loginfo("Waiting for MiR200")
-                time.sleep(1)
-
             rospy.loginfo("Entering camscan position")
+            #print "Entering camscan position"
             arm.move(c.wp_camscan_pos, c.time_between_wp)
             joint_states = rospy.wait_for_message("joint_states", JointState)
 
@@ -96,10 +87,6 @@ def main():
             rospy.loginfo("Cases until delivery to storage: " + (str(c.deliveries_before_go_to_storage - counter)))
             rospy.loginfo("Total cases delivered: " + str(counter_tot))
 
-            if counter >= c.deliveries_before_go_to_storage:
-                counter = 0
-                mir.addMissionToQueue(c.go_to_storage)
-                time.sleep(c.pause_delivery)
 
 	# CTRL+C check
     except KeyboardInterrupt:

@@ -1,0 +1,8 @@
+<launch>
+
+  <node pkg="ur5_pickandplace" name="ur5_pickandplace" type="demo_move_sim.py" output="screen">
+  </node>
+
+  <include file="$(find template_match_camera)/launch/launch_cam.launch" />
+
+</launch>
